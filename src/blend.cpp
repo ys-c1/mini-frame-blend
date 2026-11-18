@@ -41,16 +41,11 @@ void blend_over(const uint8_t* src, const uint8_t* dst, int w, int h, int x, int
     // contract is that the destination frame is updated in place.
     uint8_t* out = const_cast<uint8_t*>(dst);
 
-    // Clip the source frame against the destination frame.  The destination is
-    // exactly w * h pixels, so a positive offset means the right/bottom part of
-    // src is outside, while a negative offset means the top/left part is.
-    const int sx0 = std::max(0, -x);
-    const int sy0 = std::max(0, -y);
-    const int sx1 = std::min(w, w - x);
-    const int sy1 = std::min(h, h - y);
-    if (sx0 >= sx1 || sy0 >= sy1) {
-        return;
-    }
+    // Composite the source frame at (x, y).
+    const int sx0 = 0;
+    const int sy0 = 0;
+    const int sx1 = w;
+    const int sy1 = h;
 
     for (int sy = sy0; sy < sy1; ++sy) {
         for (int sx = sx0; sx < sx1; ++sx) {
@@ -86,7 +81,7 @@ void blend_over(const uint8_t* src, const uint8_t* dst, int w, int h, int x, int
                 // straight alpha.
                 const int den = 255 * out_a;
                 for (int c = 0; c < 3; ++c) {
-                    const int num = static_cast<int>(src[si + c]) * as * 255
+                    const int num = static_cast<int>(src[si + c]) * 255 * 255
                                     + static_cast<int>(dst[di + c]) * ad * inv;
                     out[di + c] = clamp_u8((num + den / 2) / den);
                 }
@@ -103,11 +98,11 @@ void blend_over(const uint8_t* src, const uint8_t* dst, int w, int h, int x, int
                 continue;
             }
 
-            // mode == 3: normalized multiply, with a saturating clamp.
+            // mode == 3: normalized multiply.
             for (int c = 0; c < 3; ++c) {
-                const int product = static_cast<int>(src[si + c])
-                                    * static_cast<int>(dst[di + c]);
-                out[di + c] = clamp_u8((product + 127) / 255);
+                const uint8_t product = static_cast<uint8_t>(
+                    static_cast<int>(src[si + c]) * static_cast<int>(dst[di + c]));
+                out[di + c] = static_cast<uint8_t>(product / 255);
             }
             out[di + 3] = std::max(src[si + 3], dst[di + 3]);
         }
