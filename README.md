@@ -70,6 +70,16 @@ void unpremultiply(const uint8_t* rgba, uint8_t* out, int npixels);
 
 ## 仓库状态
 
-最终 `HEAD` 是**故意带 bug 的版本**，用于测试定位能力。正确版本在
-`correct-baseline` 提交中；最终版本在其后注入了 B1、B2、B3 三处 bug。测试文件
-未在注入 bug 时改动。
+最终 `HEAD` 是**故意带 bug 的版本**，用于测试定位能力。正确版本是
+`correct-baseline` 标签指向的提交；之后只改 `src/blend.cpp` 注入了 B1、B2、B3
+三处 bug，测试文件未在注入时改动。
+
+## 验证记录
+
+在 WSL Ubuntu-24.04 下执行 `make clean && make test`：
+
+- `correct-baseline`：`test_blend: checks=38 failures=0`，退出码 0；
+- 最终 buggy `HEAD`：`test_blend: checks=38 failures=10`，退出码 1，全部为
+  断言失败，没有崩溃或死循环。
+
+正确版与 buggy 版使用完全相同的 `tests/test_blend.cpp`。
